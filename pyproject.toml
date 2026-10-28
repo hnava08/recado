@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "recado"
+version = "0.1.0"
+description = "Un bot que lee recados de un taller y decide si salen solos."
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+dev = ["pytest==8.3.4"]
+
+[project.scripts]
+recado = "recado.web:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+recado = ["estatico/*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

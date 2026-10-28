@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recado</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="menu">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">R</span>
+        <div>
+          <strong>Recado</strong>
+          <span class="lugar">Taller Murillo</span>
+        </div>
+      </div>
+      <nav>
+        <button class="nav-item" type="button" data-pantalla="bandeja" aria-current="page">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h7" stroke-linecap="round"/></svg>
+          <span>Bandeja</span>
+          <span class="pill accent" id="cuenta" hidden></span>
+        </button>
+        <button class="nav-item" type="button" data-pantalla="taller">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2.5v2M10.5 2.5v2" stroke-linecap="round"/></svg>
+          <span>Taller</span>
+        </button>
+      </nav>
+      <div class="bottom">
+        <div class="quien-taller">
+          <span class="cara" style="background:#e7eef8;color:#1e3a5f">VS</span>
+          <div>
+            <b>Vera Soliz</b>
+            <span>Mostrador</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <div class="cuerpo">
+      <div class="phonebar">
+        <button class="btn menu-toggle" type="button" id="abrir-menu">Menú</button>
+        <b id="titulo-corto">Bandeja</b>
+      </div>
+      <main class="canvas">
+        <section id="vista-bandeja">
+          <div class="title-row">
+            <div>
+              <h1>Bandeja</h1>
+              <p class="sub" id="hallazgo">Leyendo la tanda.</p>
+            </div>
+            <button class="btn primary" type="button" id="correr">Correr la tanda</button>
+          </div>
+          <p class="aviso" id="aviso" hidden></p>
+          <div class="kpis" id="cifras">
+            <div class="kpi"><div class="kpi-label">En la tanda</div><div class="kpi-value"><span class="skeleton" style="display:inline-block;width:2ch;height:24px"></span></div></div>
+            <div class="kpi"><div class="kpi-label">Salen solos</div><div class="kpi-value"><span class="skeleton" style="display:inline-block;width:2ch;height:24px"></span></div></div>
+            <div class="kpi lleva" id="kpi-mano"><div class="kpi-label">A mano</div><div class="kpi-value"><span class="skeleton" style="display:inline-block;width:2ch;height:32px"></span></div></div>
+          </div>
+          <div class="trabajo" style="margin-top:24px">
+            <section class="panel col-lista">
+              <header>
+                <h2>Recados</h2>
+                <span class="meta" id="sello-hora">28 oct 2026</span>
+              </header>
+              <div class="recados" id="lista"></div>
+              <form class="composer" id="nuevo">
+                <div class="dos">
+                  <div class="field">
+                    <label for="de">De</label>
+                    <input class="input" id="de" name="de" autocomplete="off" />
+                  </div>
+                  <div class="field">
+                    <label for="texto">Recado</label>
+                    <textarea class="input" id="texto" name="texto"></textarea>
+                  </div>
+                </div>
+                <div>
+                  <button class="btn" type="submit">Sumar</button>
+                </div>
+              </form>
+            </section>
+            <section class="panel papeleta" id="papeleta">
+              <header>
+                <h2>Papeleta</h2>
+                <button class="btn volver" type="button" id="volver">Volver</button>
+              </header>
+              <p class="meta">Elegí un recado.</p>
+            </section>
+          </div>
+        </section>
+        <section id="vista-taller" hidden>
+          <div class="title-row">
+            <div>
+              <h1>Taller</h1>
+              <p class="sub">Sábado y domingo no abre. Los feriados son los de Bolivia.</p>
+            </div>
+          </div>
+          <div class="semana" aria-label="Semana del taller">
+            <div><b>Lun</b><span>Abre</span></div>
+            <div><b>Mar</b><span>Abre</span></div>
+            <div><b>Mié</b><span>Abre</span></div>
+            <div><b>Jue</b><span>Abre</span></div>
+            <div><b>Vie</b><span>Abre</span></div>
+            <div class="cierra"><b>Sáb</b><span>Cierra</span></div>
+            <div class="cierra"><b>Dom</b><span>Cierra</span></div>
+          </div>
+          <section class="panel">
+            <header>
+              <h2>Feriados</h2>
+              <span class="meta">Nager.Date</span>
+            </header>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Día</th><th>Feriado</th><th>En esta tanda</th></tr>
+                </thead>
+                <tbody id="feriados"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script>
+    const TINTES = [
+      ["#e7eef8", "#1e3a5f"],
+      ["#e7f2ea", "#1d4a32"],
+      ["#f4eadb", "#6a4520"],
+      ["#e5f3f3", "#1a4548"],
+      ["#f3eee4", "#5c4a32"],
+      ["#e8eef2", "#24384a"]
+    ];
+    const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+    let parte = null;
+    let elegido = null;
+
+    function cara(nombre) {
+      let n = 0;
+      for (const c of nombre) n = (n + c.charCodeAt(0)) % TINTES.length;
+      return TINTES[n];
+    }
+
+    function iniciales(nombre) {
+      const partes = nombre.split(" ").filter(Boolean);
+      if (partes.length < 2) return nombre.slice(0, 1).toUpperCase();
+      return (partes[0][0] + partes[1][0]).toUpperCase();
+    }
+
+    function dia(iso) {
+      const [anio, mes, numero] = iso.split("-").map(Number);
+      return numero + " " + MESES[mes - 1] + " " + anio;
+    }
+
+    function pill(accion) {
+      if (accion === "persona") return "accent";
+      if (accion === "mover") return "warn";
+      return "";
+    }
+
+    function nodo(etiqueta, clase, texto) {
+      const el = document.createElement(etiqueta);
+      if (clase) el.className = clase;
+      if (texto != null) el.textContent = texto;
+      return el;
+    }
+
+    async function pedir(url, opciones) {
+      const respuesta = await fetch(url, opciones);
+      const datos = await respuesta.json();
+      if (!respuesta.ok) throw new Error(datos.error || "No pude leer la tanda.");
+      return datos;
+    }
+
+    function pintarCifras() {
+      const celdas = document.querySelectorAll("#cifras .kpi-value");
+      celdas[0].textContent = String(parte.total);
+      celdas[1].textContent = String(parte.salen);
+      celdas[2].textContent = String(parte.a_mano);
+      document.getElementById("kpi-mano").classList.toggle("lleva", parte.a_mano > 0);
+      document.getElementById("hallazgo").textContent = parte.hallazgo;
+      const cuenta = document.getElementById("cuenta");
+      cuenta.hidden = parte.a_mano === 0;
+      cuenta.textContent = parte.a_mano + " a mano";
+      const aviso = document.getElementById("aviso");
+      if (parte.calendario_ok) {
+        aviso.hidden = true;
+      } else {
+        aviso.hidden = false;
+        aviso.textContent = "No leí los feriados. Un día de semana no sale solo hasta que vuelva la lista.";
+      }
+      console.assert(parte.a_mano + parte.salen === parte.total);
+      console.assert(parte.recados.every(function (fila) {
+        return fila.pasos.filter(function (paso) { return paso.sello; }).length === 1;
+      }));
+    }
+
+    function pintarLista() {
+      const lista = document.getElementById("lista");
+      lista.replaceChildren();
+      if (!parte.recados.length) {
+        lista.appendChild(nodo("p", "empty", "No hay recados en esta tanda."));
+        return;
+      }
+      parte.recados.forEach(function (fila) {
+        const boton = nodo("button", "recado");
+        boton.type = "button";
+        boton.setAttribute("aria-selected", fila.id === elegido ? "true" : "false");
+        const tint = cara(fila.de);
+        const avatar = nodo("span", "cara", iniciales(fila.de));
+        avatar.style.background = tint[0];
+        avatar.style.color = tint[1];
+        const quien = nodo("span", "quien");
+        const linea = nodo("span", "linea");
+        linea.appendChild(nodo("b", "", fila.de));
+        linea.appendChild(nodo("span", "hora", fila.hora));
+        quien.appendChild(linea);
+        quien.appendChild(nodo("span", "corte", fila.texto));
+        boton.append(avatar, quien, nodo("span", "pill " + pill(fila.accion), fila.etiqueta));
+        boton.addEventListener("click", function () {
+          location.hash = fila.id;
+        });
+        lista.appendChild(boton);
+      });
+    }
+
+    function pintarPapeleta() {
+      const panel = document.getElementById("papeleta");
+      const fila = parte.recados.find(function (item) { return item.id === elegido; });
+      const volver = nodo("button", "btn volver", "Volver");
+      volver.type = "button";
+      volver.id = "volver";
+      volver.addEventListener("click", function () { location.hash = "bandeja"; });
+      panel.replaceChildren();
+      const cabeza = nodo("header");
+      if (!fila) {
+        cabeza.append(nodo("h2", "", "Papeleta"), volver);
+        panel.append(cabeza, nodo("p", "meta", "Elegí un recado."));
+        return;
+      }
+      const titulo = nodo("h2", "", fila.de);
+      cabeza.append(titulo, volver);
+      const marca = nodo("p", "meta", fila.etiqueta + " · " + fila.hora);
+      const papel = nodo("p", "papel", fila.texto);
+      const cinta = nodo("ol", "cinta");
+      fila.pasos.forEach(function (paso) {
+        const item = nodo("li", paso.sello ? "sello" : "");
+        item.appendChild(paso.sello ? nodo("span", "marca") : nodo("span"));
+        item.appendChild(nodo("span", "", paso.texto));
+        cinta.appendChild(item);
+      });
+      const salida = nodo("div", "salida");
+      if (fila.respuesta) {
+        salida.append(nodo("h3", "", "Sale así"), nodo("p", "", fila.respuesta));
+      } else {
+        salida.append(nodo("h3", "", "No sale"), nodo("p", "", "No hay respuesta. Lo lee alguien del taller."));
+      }
+      panel.append(cabeza, marca, papel, cinta, salida);
+    }
+
+    function pintarFeriados() {
+      const cuerpo = document.getElementById("feriados");
+      cuerpo.replaceChildren();
+      const choques = {};
+      parte.recados.forEach(function (fila) {
+        (fila.camino || []).forEach(function (fecha) {
+          (choques[fecha] = choques[fecha] || []).push(fila.de);
+        });
+      });
+      const filas = parte.feriados.filter(function (feriado) { return feriado.fecha >= parte.hoy; });
+      if (!parte.calendario_ok) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 3;
+        td.appendChild(nodo("p", "empty", "No pude leer los feriados."));
+        tr.appendChild(td);
+        cuerpo.appendChild(tr);
+        return;
+      }
+      filas.forEach(function (feriado) {
+        const tr = document.createElement("tr");
+        tr.appendChild(nodo("td", "", dia(feriado.fecha)));
+        tr.appendChild(nodo("td", "", feriado.nombre));
+        const quienes = choques[feriado.fecha];
+        const td = nodo("td", "", quienes ? quienes.join(", ") : "-");
+        if (quienes) td.style.color = "var(--accent-ink)";
+        tr.appendChild(td);
+        cuerpo.appendChild(tr);
+      });
+    }
+
+    function pintar() {
+      if (!elegido || !parte.recados.some(function (fila) { return fila.id === elegido; })) {
+        const mezcla = parte.recados.find(function (fila) { return fila.mezcla; });
+        elegido = (mezcla || parte.recados[0] || {}).id || null;
+      }
+      pintarCifras();
+      pintarLista();
+      pintarPapeleta();
+      pintarFeriados();
+    }
+
+    function fallo(mensaje) {
+      document.getElementById("hallazgo").textContent = mensaje;
+      document.getElementById("lista").replaceChildren(nodo("p", "empty", mensaje));
+    }
+
+    document.getElementById("correr").addEventListener("click", async function () {
+      this.disabled = true;
+      try {
+        parte = await pedir("/api/correr", { method: "POST" });
+        pintar();
+      } catch (error) {
+        fallo(error.message);
+      } finally {
+        this.disabled = false;
+      }
+    });
+
+    document.getElementById("nuevo").addEventListener("submit", async function (evento) {
+      evento.preventDefault();
+      const de = document.getElementById("de").value;
+      const texto = document.getElementById("texto").value.trim();
+      if (!texto) return;
+      try {
+        parte = await pedir("/api/recados", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ de: de, texto: texto })
+        });
+        document.getElementById("texto").value = "";
+        location.hash = parte.recados[parte.recados.length - 1].id;
+        pintar();
+      } catch (error) {
+        fallo(error.message);
+      }
+    });
+
+    document.getElementById("abrir-menu").addEventListener("click", function () {
+      document.getElementById("menu").classList.toggle("open");
+    });
+
+    function mostrar(nombre) {
+      document.getElementById("vista-bandeja").hidden = nombre !== "bandeja";
+      document.getElementById("vista-taller").hidden = nombre !== "taller";
+      document.querySelectorAll("[data-pantalla]").forEach(function (item) {
+        if (item.getAttribute("data-pantalla") === nombre) item.setAttribute("aria-current", "page");
+        else item.removeAttribute("aria-current");
+      });
+      document.getElementById("titulo-corto").textContent = nombre === "taller" ? "Taller" : "Bandeja";
+      document.getElementById("menu").classList.remove("open");
+      if (nombre === "taller") document.body.classList.remove("en-detalle");
+    }
+
+    function aplicarHash() {
+      if (!parte) return;
+      const hash = location.hash.replace("#", "");
+      if (hash === "taller") {
+        mostrar("taller");
+        return;
+      }
+      mostrar("bandeja");
+      if (parte.recados.some(function (fila) { return fila.id === hash; })) {
+        elegido = hash;
+        document.body.classList.add("en-detalle");
+        pintarLista();
+        pintarPapeleta();
+      } else {
+        document.body.classList.remove("en-detalle");
+      }
+    }
+
+    document.querySelectorAll("[data-pantalla]").forEach(function (boton) {
+      boton.addEventListener("click", function () {
+        location.hash = boton.getAttribute("data-pantalla");
+      });
+    });
+
+    window.addEventListener("hashchange", aplicarHash);
+
+    pedir("/api/tanda").then(function (datos) {
+      parte = datos;
+      const hash = location.hash.replace("#", "");
+      if (parte.recados.some(function (fila) { return fila.id === hash; })) elegido = hash;
+      pintar();
+      aplicarHash();
+    }).catch(function (error) { fallo(error.message); });
+  </script>
+</body>
+</html>
